@@ -5,91 +5,9 @@
 #include <math.h>
 double activationFunction(double x)	{return 1.0/(1 + exp(-x));}
 double dActivationFunction(double x)	{return activationFunction(x)*(1 - activationFunction(x));}
-int main(int argc, char *argv[])
+void train(double * data, int * labels, double * hiddenWeights, double * outputWeights, int n, int d, int numberOfHiddenUnits, int outputDimensions, int batchSize, int epochs, int * nbatch, double * inputVector, double * hiddenActualInput, double * hiddenOutputVector, double * outputVector, double * targetVector, double * outputDelta, double * hiddenDelta, double * error, double learningRate)
 {
-	if(argc!=13)
-	{
-		printf("Usage: ./execute samples features hiddenUnits outputDims learningRate batchSize epochs dataName labelName\n");
-		printf("Example: ./execute 60000 10000 784 700 10 0.1 100 500 mnist_data_train.txt mnist_label_train.txt mnist_data_test mnist_label_test\n");
-		exit(1);
-	}
-	int n = atoi(argv[1]);//60000
-	int nt = atoi(argv[2]);//10000
-	int d = atoi(argv[3]);//784
-	int numberOfHiddenUnits = atoi(argv[4]);//700
-	int outputDimensions = atoi(argv[5]);//10
-	double learningRate = atof(argv[6]);//0.1
-	int batchSize = atoi(argv[7]);//100
-	int epochs = atoi(argv[8]);//500
-	char * data_name = argv[9];
-	char * label_name = argv[10]; 
-	char * test_data_name = argv[11]; 
-	char * test_label_name = argv[12];
-	printf("n: %d, d: %d, numberOfHiddenUnits: %d, outputDimensions: %d\n", n, d, numberOfHiddenUnits, outputDimensions);
-	printf("learningRate: %lf, batchSize: %d, epochs: %d\n", learningRate, batchSize, epochs);
-	printf("data name: %s, label name: %s\n", data_name, label_name);
-	double * data = (double *)malloc(n*d * sizeof(double));
-	int * label = (int *)malloc(n * sizeof(double)); 
-	int * labels = (int *)calloc(n*outputDimensions, sizeof(double)); 
-	FILE * data_input = fopen(data_name, "r");
-	FILE * label_input = fopen(label_name, "r");
-	int i, j;
-	for(i=0;i<n;i++)
-	{
-		fscanf(data_input, "%lf", data+i*d);
-		for(j=1;j<d;j++) fscanf(data_input, ",%lf", data+i*d+j);
-		fscanf(label_input, "%d", label+i);
-	}
-	fclose(data_input);
-	fclose(label_input);
-	//FILE * data_verify = fopen("data.verify", "w");
-	//FILE * label_verify = fopen("label.verify", "w");
-	//for(i=0;i<n;i++)
-	//{
-	//	fprintf(data_verify, "%lf", data[i*d+j]);
-	//	for(j=1;j<d;j++) fprintf(data_verify, ",%lf", data[i*d+j]);
-	//	fprintf(data_verify, "\n");
-	//	fprintf(label_verify, "%d\n", label[i]);
-	//}
-	//return 0;
-	for(i=0;i<n;i++)	labels[i*outputDimensions+label[i]]=1;
-	srand(time(NULL));
-	double * hiddenWeights = (double *)malloc(d * numberOfHiddenUnits * sizeof(double));
-	//for(i=0;i<d*numberOfHiddenUnits;i++)	hiddenWeights[i] = rand()/d;
-	for(i=0;i<d*numberOfHiddenUnits;i++)	hiddenWeights[i] = (double)rand()/(double)RAND_MAX/d;
-	/*FILE * hw = fopen("hiddenWeights.txt","r");
-	for(i=0;i<d;i++)
-	{
-		fscanf(hw, "%lf", hiddenWeights+i*numberOfHiddenUnits);
-		for(j=1;j<numberOfHiddenUnits;j++)
-		{
-			fscanf(hw, ",%lf", hiddenWeights+i*numberOfHiddenUnits+j);
-		}
-	}
-	fclose(hw);*/
-	double * outputWeights = (double *)malloc(numberOfHiddenUnits * outputDimensions * sizeof(double));
-	//for(i=0;i<numberOfHiddenUnits*outputDimensions;i++)	outputWeights[i] = rand()/numberOfHiddenUnits;
-	for(i=0;i<numberOfHiddenUnits*outputDimensions;i++)	outputWeights[i] = (double)rand()/(double)RAND_MAX/numberOfHiddenUnits;
-	/*FILE * ow = fopen("outputWeights.txt","r");
-	for(i=0;i<numberOfHiddenUnits;i++)
-	{
-		fscanf(ow, "%lf", outputWeights+i*outputDimensions);
-		for(j=1;j<outputDimensions;j++)
-		{
-			fscanf(ow, ",%lf", outputWeights+i*outputDimensions+j);
-		}
-	}
-	fclose(ow);*/
-	int * nbatch = (int *) calloc(batchSize, sizeof(int));
-	double * inputVector = (double *)malloc(d * sizeof(double));
-	double * hiddenActualInput = (double *)malloc(numberOfHiddenUnits * sizeof(double));
-	double * hiddenOutputVector = (double *)malloc(numberOfHiddenUnits * sizeof(double));
-	double * outputVector = (double *)malloc(outputDimensions * sizeof(double));
-	double * targetVector = (double *)malloc(outputDimensions * sizeof(double));
-	double * outputDelta = (double *)malloc(outputDimensions * sizeof(double));
-	double * hiddenDelta = (double *)malloc(numberOfHiddenUnits * sizeof(double));
-	double * error = (double *)malloc(outputDimensions * sizeof(double));
-	int t, k;
+	int i, j, t, k;
 	for(t=0;t<epochs;t++)
 	{
 		for(k=0;k<batchSize;k++)
@@ -174,6 +92,63 @@ int main(int argc, char *argv[])
 		msd = msd/batchSize;
 		printf("****** Error of Step %d: %lf ******\n", t, msd);
 	}
+}
+int main(int argc, char *argv[])
+{
+	if(argc!=13)
+	{
+		printf("Usage: ./execute samples features hiddenUnits outputDims learningRate batchSize epochs dataName labelName\n");
+		printf("Example: ./execute 60000 10000 784 700 10 0.1 100 500 mnist_data_train.txt mnist_label_train.txt mnist_data_test mnist_label_test\n");
+		exit(1);
+	}
+	int n = atoi(argv[1]);//60000
+	int nt = atoi(argv[2]);//10000
+	int d = atoi(argv[3]);//784
+	int numberOfHiddenUnits = atoi(argv[4]);//700
+	int outputDimensions = atoi(argv[5]);//10
+	double learningRate = atof(argv[6]);//0.1
+	int batchSize = atoi(argv[7]);//100
+	int epochs = atoi(argv[8]);//500
+	char * data_name = argv[9];
+	char * label_name = argv[10]; 
+	char * test_data_name = argv[11]; 
+	char * test_label_name = argv[12];
+	printf("n: %d, d: %d, numberOfHiddenUnits: %d, outputDimensions: %d\n", n, d, numberOfHiddenUnits, outputDimensions);
+	printf("learningRate: %lf, batchSize: %d, epochs: %d\n", learningRate, batchSize, epochs);
+	printf("data name: %s, label name: %s\n", data_name, label_name);
+	double * data = (double *)malloc(n*d * sizeof(double));
+	int * label = (int *)malloc(n * sizeof(int)); 
+	int * labels = (int *)calloc(n*outputDimensions, sizeof(int)); 
+	FILE * data_input = fopen(data_name, "r");
+	FILE * label_input = fopen(label_name, "r");
+	int i, j;
+	for(i=0;i<n;i++)
+	{
+		fscanf(data_input, "%lf", data+i*d);
+		for(j=1;j<d;j++) fscanf(data_input, ",%lf", data+i*d+j);
+		fscanf(label_input, "%d", label+i);
+	}
+	fclose(data_input);
+	fclose(label_input);
+	for(i=0;i<n;i++)	labels[i*outputDimensions+label[i]]=1;
+	srand(time(NULL));
+	double * hiddenWeights = (double *)malloc(d * numberOfHiddenUnits * sizeof(double));
+	for(i=0;i<d*numberOfHiddenUnits;i++)	hiddenWeights[i] = (double)rand()/(double)RAND_MAX/d;
+	double * outputWeights = (double *)malloc(numberOfHiddenUnits * outputDimensions * sizeof(double));
+	for(i=0;i<numberOfHiddenUnits*outputDimensions;i++)	outputWeights[i] = (double)rand()/(double)RAND_MAX/numberOfHiddenUnits;
+	int * nbatch = (int *) calloc(batchSize, sizeof(int));
+	double * inputVector = (double *)malloc(d * sizeof(double));
+	double * hiddenActualInput = (double *)malloc(numberOfHiddenUnits * sizeof(double));
+	double * hiddenOutputVector = (double *)malloc(numberOfHiddenUnits * sizeof(double));
+	double * outputVector = (double *)malloc(outputDimensions * sizeof(double));
+	double * targetVector = (double *)malloc(outputDimensions * sizeof(double));
+	double * outputDelta = (double *)malloc(outputDimensions * sizeof(double));
+	double * hiddenDelta = (double *)malloc(numberOfHiddenUnits * sizeof(double));
+	double * error = (double *)malloc(outputDimensions * sizeof(double));
+
+	train(data, labels, hiddenWeights, outputWeights, n, d, numberOfHiddenUnits, outputDimensions, batchSize, epochs, nbatch, inputVector, hiddenActualInput, hiddenOutputVector, outputVector, targetVector, outputDelta, hiddenDelta, error, learningRate);
+	//void train(double * data, int * labels, double * hiddenWeights, double * outputWeights, int n, int d, int numberOfHiddenUnits, int outputDimensions, int batchSize, int epochs, int * nbatch, double * inputVector, double * hiddenActualInput, double * hiddenOutputVector, double * outputVector, double * targetVector, double * outputDelta, double * hiddenDelta, double * error, double learningRate)
+	
 	double * test_data = (double *)malloc(nt * d * sizeof(double));
 	int * test_label = (int *)malloc(nt * sizeof(double)); 
 	FILE * test_data_input = fopen(test_data_name, "r");
